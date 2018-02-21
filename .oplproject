@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ASCII"?><project>
+	<version>1.0</version>
+	<description>Shift scheduling model for night wardens in health care</description>
+	<configs>
+		<config default="true" name="Configuration1" category="opl">
+			<ref name="hcm.ops" type="setting">
+			</ref>
+			<ref name="hcm.dat" type="data">
+			</ref>
+			<ref name="hcm.mod" type="model">
+			</ref>
+		</config>
+	</configs>
+	
+</project>
