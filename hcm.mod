@@ -15,8 +15,6 @@ range Station = 1..11;
 range Employee = 1..10;
 range Day = 1..30;
 
-//range empRange01 = 1..10; // Workaround for individual employeeCount
-
 float k = 0.05; // Sickness rate (in 0..1)
 float w_o = 1; // Weight for overtime penalty (in 0..infinity)
 //TODO: w_f
@@ -24,20 +22,20 @@ int p_fMax = 15; // Maximal amount of shifts before shift change
 int p_sMax = 15;
 int p_nMax = 15;
 int p_xMax = 15;
-int u[Station][Employee][Day] = ...; 	// Day-off plan
+//int u[Station][Employee][Day] = ...; 	// Day-off plan //TODO
 
 // Decision variables
 dvar int x[Station][Employee][Day] in 0..1; 	// ToBe night warden shift plan ("Soll")
 dvar int f[Station][Employee][Day] in 0..1; 	// ToBe shift plan Frühschicht
 dvar int s[Station][Employee][Day] in 0..1; 	// ToBe shift plan Spätschicht
 dvar int n[Station][Employee][Day] in 0..1; 	// ToBe shift plan Nachtschicht
-dvar float+ o[Station][Employee][Day];   		// Overtime in hours
+dvar int o[Station][Employee][Day] in 0..1;   	// Overtime in hours
  
 // Target function
 minimize
   120 - sum(i in Station, j in Employee, t in Day) (
-  	(x[i][j][t] - w_o * (o[i][j][t]/10))
-  )/*TODO: Fairness*/;
+  	(x[i][j][t] - w_o * (o[i][j][t]))
+  )/*TODO: Fairness sum in sum*/;
 
 // Constraints
 subject to{
@@ -83,9 +81,9 @@ subject to{
   	  (10 * x[i][j][t] + 7.7 * (f[i][j][t] + s[i][j][t]) + 10 * n[i][j][t])
   	)
   	<= 160 - k * 160 - 7.7  * sum(t in Day) (
-  	  u[i][j][t]
+  	  0.06 // Average vacation per day in hours //TODO
   	) + sum(t in Day) (
-  	  o[i][j][t]
+  	  o[i][j][t] * 10
   	)
   );
   
@@ -99,12 +97,12 @@ subject to{
     
   // (9) At most one shift per day
   forall(i in Station, j in Employee, t in Day)
-    x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + u[i][j][t] <= 1; 
+    x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + o[i][j][t] <= 1; 
   
-  // (10) Rest at least after 10 Day of work
-  forall(i in Station, j in Employee, t in Day)
+  // (10) Rest at least after 10 Day of work //TODO: t and t+10
+  /*forall(i in Station, j in Employee, t in Day)
     sum(t in t..t+10)
-      x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] <= 10;
+      x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] <= 10;*/
    
   // (11) Rotation of morning shifts
   forall(i in Station, j in Employee)
