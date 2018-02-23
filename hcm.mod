@@ -8,6 +8,7 @@
 /* Notes
 - cplex ranges are of type int
 - decision variables depend on ranges
+- CANCELED after >10min calculation
 */
 
 // Declarations
@@ -16,8 +17,8 @@ range Employee = 1..10;
 range Day = 1..30;
 
 float k = 0.05;  // Sickness rate (in 0..1)
-float w_o = 1;   // Weight for overtime penalty (in 0..infinity)
-//TODO: w_f
+float w_o = 0.5;   // Weight for overtime penalty (in 0..infinity)
+float w_f = 0.5;   // Weight for fairness penalty (in 0..infinity)
 int p_fMax = 15; // Maximal amount of shifts before shift change
 int p_sMax = 15;
 int p_nMax = 15;
@@ -33,9 +34,21 @@ dvar int o[Station][Employee][Day] in 0..1;   	// Overtime in hours
  
 // Target function
 minimize
-  120 - sum(i in Station, j in Employee, t in Day) (
-  	(x[i][j][t] - w_o * (o[i][j][t]))
-  )/*TODO: Fairness sum in sum*/;
+  120 - sum(i in Station, j in Employee, t in Day) ( // 1 night warden per house per day --> 4 houses * 30 days == 120
+  	(x[i][j][t] - w_o * (o[i][j][t]))                // Penalize overtime of individuals
+  )/* + w_f * (                                        // Penalize night warden shift unfairness between stations // Canceled after >4min calculation
+    sum(i in Station) (
+      abs(
+        sum(j in Employee, t in Day) (
+          x[i][j][t]
+        ) - (
+          sum(i in Station, j in Employee, t in Day) (
+            x[i][j][t]
+          )
+        )/11
+      )
+    )
+  )*/;
 
 // Constraints
 subject to{
@@ -81,7 +94,7 @@ subject to{
   	  (10 * x[i][j][t] + 7.7 * (f[i][j][t] + s[i][j][t]) + 10 * n[i][j][t])
   	)
   	<= 160 - k * 160 - 7.7  * sum(t in Day) (
-  	  0.06 // Average vacation per day in hours //TODO
+  	  0.06 // Average vacation per day in hours
   	) + sum(t in Day) (
   	  o[i][j][t] * 10
   	)
