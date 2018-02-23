@@ -80,10 +80,10 @@ subject to{
   
   // (5) In house H2 and H4 should be at least 1 ToBe night warden per day
   forall(t in Day) (
-  	sum(i in 1..3, j in Employee) (
+  	sum(i in 4..6, j in Employee) (
 	  x[i][j][t]
     ) +
-    sum(i in 7..9, j in Employee) (
+    sum(i in 10..11, j in Employee) (
       x[i][j][t]
     ) >= 1
   );
@@ -101,12 +101,12 @@ subject to{
   );
   
   // (7) No morning shift after night warden shift
-  forall(i in Station, j in Employee, t in Day)
-    x[i][j][t] + f[i][j][t] <= 1;
+  forall(i in Station, j in Employee, t in 1..29)
+    x[i][j][t] + f[i][j][t+1] <= 1;
     
   // (8) No morning shift after night shift
-  forall(i in Station, j in Employee, t in Day)
-    n[i][j][t] + f[i][j][t] <= 1;
+  forall(i in Station, j in Employee, t in 1..29)
+    n[i][j][t] + f[i][j][t+1] <= 1;
     
   // (9) At most one shift per day
   forall(i in Station, j in Employee, t in Day)
