@@ -6,7 +6,7 @@
  *********************************************/
 
 //SheetConnection sheet("hcm.xls");
-//u from SheetRead(sheet, "'Eingabe U'!C6:AF15")
+//u from SheetRead(sheet, "'Eingabe U'!C6:AF15") // Cannot handle 3-dim data with .xls
 /*u = [[[1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 ],
 		[1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 ],
 		[1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 ],

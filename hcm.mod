@@ -15,14 +15,14 @@ range Station = 1..11;
 range Employee = 1..10;
 range Day = 1..30;
 
-float k = 0.05; // Sickness rate (in 0..1)
-float w_o = 1; // Weight for overtime penalty (in 0..infinity)
+float k = 0.05;  // Sickness rate (in 0..1)
+float w_o = 1;   // Weight for overtime penalty (in 0..infinity)
 //TODO: w_f
 int p_fMax = 15; // Maximal amount of shifts before shift change
 int p_sMax = 15;
 int p_nMax = 15;
 int p_xMax = 15;
-//int u[Station][Employee][Day] = ...; 	// Day-off plan //TODO
+//int u[Station][Employee][Day] = ...; 	// Day-off plan // Cannot read/write 3-dim data from .xls 
 
 // Decision variables
 dvar int x[Station][Employee][Day] in 0..1; 	// ToBe night warden shift plan ("Soll")
@@ -99,10 +99,17 @@ subject to{
   forall(i in Station, j in Employee, t in Day)
     x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + o[i][j][t] <= 1; 
   
-  // (10) Rest at least after 10 Day of work //TODO: t and t+10
+  // (10a) Rest at least after 10 days of work // Canceled after >6min of calculation
   /*forall(i in Station, j in Employee, t in Day)
-    sum(t in t..t+10)
+    sum(t in t..t+10: t <= 20)
       x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] <= 10;*/
+      
+  // (10b) Rest at least after 10 days of work // Error: Aggregation operator FORALL not available for int
+  /*forall(i in Station, j in Employee, t in Day) (
+    sum(th in 0..10: t <= 20) (
+      x[i][j][t+th] + f[i][j][t+th] + s[i][j][t+th] + n[i][j][t+th] <= 10
+    )
+  );*/
    
   // (11) Rotation of morning shifts
   forall(i in Station, j in Employee)
