@@ -13,7 +13,7 @@
 
 // Declarations
 int stationAmount = 11;
-int employeeAmount = 11;
+int employeeAmount = 12;
 float k = 0.05;  // Sickness rate (in 0..1)
 float w_o = 1.0; // Weight for overtime penalty (in 0..infinity)
 float w_f = 0.0; // Weight for fairness penalty (in 0..infinity)
@@ -124,7 +124,7 @@ subject to{
   // (10) Rest at least after 10 days of work
   forall(i in Station, j in Employee, t in Day) (
     sum(th in t..t+10: t <= 20)
-      (x[i][j][th] + f[i][j][th] + s[i][j][th] + n[i][j][th]) <= 10
+      (x[i][j][th] + f[i][j][th] + s[i][j][th] + n[i][j][th] + o[i][j][th]) <= 10
   );
     
   // (11) Rotation of morning shifts
