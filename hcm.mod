@@ -8,37 +8,35 @@
 /* Notes
 - cplex ranges are of type int
 - decision variables depend on ranges
-- CANCELED after >10min calculation
+- restrict calculation at 'statistics'
 */
 
 // Declarations
 range Station = 1..11;
-range Employee = 1..30;
+range Employee = 1..15;
 range Day = 1..30;
-range twentyDays = 1..20;
-range tenDays = 1..10;
 
 float k = 0.05;  // Sickness rate (in 0..1)
 float w_o = 0.5; // Weight for overtime penalty (in 0..infinity)
 float w_f = 0.5; // Weight for fairness penalty (in 0..infinity)
-int p_fMax = 15; // Maximal amount of shifts before shift change
-int p_sMax = 15;
-int p_nMax = 15;
-int p_xMax = 15;
-//int u[Station][Employee][Day] = ...; 	// Day-off plan // Cannot read/write 3-dim data from .xls 
+int fMax = 15;   // Maximal amount of shifts before shift change
+int sMax = 15;
+int nMax = 15;
+int xMax = 15;
+//int u[Station][Employee][Day] = ...; 	// Day-off plan // Cannot read/write 3-dim data from .xls
 
 // Decision variables
-dvar int x[Station][Employee][Day] in 0..1; 	// ToBe night warden shift plan ("Soll")
-dvar int f[Station][Employee][Day] in 0..1; 	// ToBe shift plan Frühschicht
-dvar int s[Station][Employee][Day] in 0..1; 	// ToBe shift plan Spätschicht
-dvar int n[Station][Employee][Day] in 0..1; 	// ToBe shift plan Nachtschicht
-dvar int o[Station][Employee][Day] in 0..1;   	// Overtime in hours
- 
+dvar int x[Station][Employee][Day] in 0..1; // ToBe night warden shift plan ("Soll")
+dvar int f[Station][Employee][Day] in 0..1; // ToBe shift plan Frühschicht
+dvar int s[Station][Employee][Day] in 0..1;	// ToBe shift plan Spätschicht
+dvar int n[Station][Employee][Day] in 0..1;	// ToBe shift plan Nachtschicht
+dvar int o[Station][Employee][Day] in 0..1;	// Overtime in hours
+
 // Target function
 minimize
   120 - sum(i in Station, j in Employee, t in Day) ( // 1 night warden per house per day --> 4 houses * 30 days == 120
   	(x[i][j][t] - w_o * (o[i][j][t]))                // Penalize overtime of individuals
-  ) + w_f * (                                        // Penalize night warden shift unfairness between stations // Canceled after >4min calculation
+  ) + w_f * (                                        // Penalize night warden shift unfairness between stations
     sum(i in Station) (
       abs(
         sum(j in Employee, t in Day) (
@@ -94,9 +92,9 @@ subject to{
   forall(i in Station, j in Employee) (
   	sum(t in Day) (
   	  (10 * x[i][j][t] + 7.7 * (f[i][j][t] + s[i][j][t]) + 10 * n[i][j][t])
-  	) <= 160 /*(160 - k * 160 - 16.17 + sum(t in Day) (
+  	) <= (160 - k * 160 - 16.17 + sum(t in Day) (
   	  o[i][j][t] * 10
-  	))*/
+  	))
   );
 
   // (7) No morning shift after night warden shift
@@ -111,42 +109,50 @@ subject to{
   forall(i in Station, j in Employee, t in Day)
     x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + o[i][j][t] <= 1;
   
-  // (10a) Rest at least after 10 days of work // Canceled after >6min of calculation
-  /*forall(i in Station, j in Employee, t in Day)
-    sum(t in t..t+10: t <= 20)
-      x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] <= 10;*/
-      
-  // (10b) Rest at least after 10 days of work // Error: Aggregation operator FORALL not available for int
-  /*forall(i in Station, j in Employee, t in Day) (
-    sum(th in 0..10: t <= 20) (
-      x[i][j][t+th] + f[i][j][t+th] + s[i][j][t+th] + n[i][j][t+th] <= 10
-    )
-  );*/
-
-  // (10c) Rest at least after 10 days of work
-  /*forall(i in Station, j in Employee, t in twentyDays) (
-    (sum(th in tenDays) (x[i][j][th] + f[i][j][th] + s[i][j][th] + n[i][j][th])) <= 10
-  );*/
+  // (10) Rest at least after 10 days of work
+  forall(i in Station, j in Employee, t in Day) (
+    sum(th in t..t+10: t <= 20)
+      (x[i][j][th] + f[i][j][th] + s[i][j][th] + n[i][j][th]) <= 10
+  );
     
-
   // (11) Rotation of morning shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
-      f[i][j][t] <= p_fMax;
+      f[i][j][t] <= fMax;
       
   // (12) Rotation of evening shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
-      s[i][j][t] <= p_sMax;
+      s[i][j][t] <= sMax;
       
   // (13) Rotation of night shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
-      n[i][j][t] <= p_nMax;
+      n[i][j][t] <= nMax;
       
   // (14) Rotation of house warden shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
-      x[i][j][t] <= p_xMax;
+      x[i][j][t] <= xMax;
+      
+  // (15) Maximum night warden shifts per day in house H1
+  forall(t in Day)
+    sum(i in 1..3, j in Employee)
+      x[i][j][t] <= 1;
+      
+  // (16) Maximum night warden shifts per day in house H2
+  forall(t in Day)
+    sum(i in 4..6, j in Employee)
+      x[i][j][t] <= 1;
+      
+  // (17) Maximum night warden shifts per day in house H3
+  forall(t in Day)
+    sum(i in 7..9, j in Employee)
+      x[i][j][t] <= 1;
+      
+  // (18) Maximum night warden shifts per day in house H4
+  forall(t in Day)
+    sum(i in 10..11, j in Employee)
+      x[i][j][t] <= 1;
       
 }
