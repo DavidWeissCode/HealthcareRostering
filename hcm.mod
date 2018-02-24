@@ -12,17 +12,20 @@
 */
 
 // Declarations
-range Station = 1..11;
-range Employee = 1..15;
-range Day = 1..30;
-
+int stationAmount = 11;
+int employeeAmount = 11;
 float k = 0.05;  // Sickness rate (in 0..1)
-float w_o = 0.5; // Weight for overtime penalty (in 0..infinity)
-float w_f = 0.5; // Weight for fairness penalty (in 0..infinity)
+float w_o = 1.0; // Weight for overtime penalty (in 0..infinity)
+float w_f = 0.0; // Weight for fairness penalty (in 0..infinity)
 int fMax = 15;   // Maximal amount of shifts before shift change
 int sMax = 15;
 int nMax = 15;
 int xMax = 15;
+
+range Station = 1..stationAmount;
+range Employee = 1..employeeAmount;
+range Day = 1..30;
+
 //int u[Station][Employee][Day] = ...; 	// Day-off plan // Cannot read/write 3-dim data from .xls
 
 // Decision variables
@@ -34,21 +37,30 @@ dvar int o[Station][Employee][Day] in 0..1;	// Overtime in hours
 
 // Target function
 minimize
-  120 - sum(i in Station, j in Employee, t in Day) ( // 1 night warden per house per day --> 4 houses * 30 days == 120
+  120 - sum(i in Station, j in Employee, t in Day) ( // One night warden per house per day --> 4 houses * 30 days == 120
   	(x[i][j][t] - w_o * (o[i][j][t]))                // Penalize overtime of individuals
   ) + w_f * (                                        // Penalize night warden shift unfairness between stations
-    sum(i in Station) (
+    sum(i in 1..9) (								 // Fairness between stations 1-9
       abs(
         sum(j in Employee, t in Day) (
           x[i][j][t]
         ) - (
-          sum(i in Station, j in Employee, t in Day) (
+          sum(i in 1..9, j in Employee, t in Day) (
             x[i][j][t]
           )
-        )/11
+        ) / 9
       )
-    )
-  );
+    ) + sum(i in 10..11) (						     // Fairness between stations 10-11
+      abs(
+        sum(j in Employee, t in Day) (
+          x[i][j][t]
+        ) - (
+          sum(i in 10..11, j in Employee, t in Day) (
+            x[i][j][t]
+          )
+        ) / 2
+      )
+    ));
 
 // Constraints
 subject to{
