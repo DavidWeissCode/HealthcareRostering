@@ -14,6 +14,11 @@
 // Declarations
 int stationAmount = 11;
 int employeeAmount = 13;
+range Station = 1..stationAmount;
+range Employee = 1..employeeAmount;
+range Day = 1..30;
+
+// Parameters
 float k = 0.05;  // Sickness rate (in 0..1)
 float w_o = 0.5; // Weight for overtime penalty (in 0..infinity)
 float w_f = 0.5; // Weight for fairness penalty (in 0..infinity)
@@ -21,19 +26,14 @@ int fMax = 5;    // Maximal amount of shifts before shift change
 int sMax = 5;
 int nMax = 5;
 int xMax = 5;
-
-range Station = 1..stationAmount;
-range Employee = 1..employeeAmount;
-range Day = 1..30;
-
-//int u[Station][Employee][Day] = ...; 	// Day-off plan // Cannot read/write 3-dim data from .xls
+int oMax = 4;    // Maximal amount of overtime shifts per employee per month
 
 // Decision variables
-dvar int x[Station][Employee][Day] in 0..1; // ToBe night warden shift plan ("Soll")
-dvar int f[Station][Employee][Day] in 0..1; // ToBe shift plan Frühschicht
-dvar int s[Station][Employee][Day] in 0..1;	// ToBe shift plan Spätschicht
-dvar int n[Station][Employee][Day] in 0..1;	// ToBe shift plan Nachtschicht
-dvar int o[Station][Employee][Day] in 0..1;	// Overtime in hours
+dvar int x[Station][Employee][Day] in 0..1; // Night warden shift plan
+dvar int f[Station][Employee][Day] in 0..1; // Morning shift plan
+dvar int s[Station][Employee][Day] in 0..1;	// Evening shift plan
+dvar int n[Station][Employee][Day] in 0..1;	// Night shift plan
+dvar int o[Station][Employee][Day] in 0..1;	// Overtime shift plan
 
 // Target function
 minimize
@@ -63,7 +63,7 @@ minimize
     ));
 
 // Constraints
-subject to{
+subject to {
 
   // (1) Each station has to do at least 3 morning shifts each day
   forall(i in Station, t in Day)
@@ -174,5 +174,10 @@ subject to{
   forall(t in Day)
     sum(i in 10..11, j in Employee)
       x[i][j][t] <= 1;
+      
+  // (19) Maximum overtime shifts per employee per month
+  forall(i in Station, j in Employee)
+    sum(t in Day)
+      o[i][j][t] <= oMax;
       
 }
