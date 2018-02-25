@@ -8,19 +8,19 @@
 /* Notes
 - cplex ranges are of type int
 - decision variables depend on ranges
-- restrict calculation at 'statistics'
+- restrict calculation with ops file
 */
 
 // Declarations
 int stationAmount = 11;
-int employeeAmount = 12;
+int employeeAmount = 13;
 float k = 0.05;  // Sickness rate (in 0..1)
-float w_o = 1.0; // Weight for overtime penalty (in 0..infinity)
-float w_f = 0.0; // Weight for fairness penalty (in 0..infinity)
-int fMax = 15;   // Maximal amount of shifts before shift change
-int sMax = 15;
-int nMax = 15;
-int xMax = 15;
+float w_o = 0.5; // Weight for overtime penalty (in 0..infinity)
+float w_f = 0.5; // Weight for fairness penalty (in 0..infinity)
+int fMax = 5;    // Maximal amount of shifts before shift change
+int sMax = 5;
+int nMax = 5;
+int xMax = 5;
 
 range Station = 1..stationAmount;
 range Employee = 1..employeeAmount;

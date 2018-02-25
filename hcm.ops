@@ -3,6 +3,6 @@
 <settings version="2">
   <category name="cplex">
     <setting name="clocktype" value="0"/>
-    <setting name="tilim" value="60.0"/>
+    <setting name="tilim" value="600.0"/>
   </category>
 </settings>
