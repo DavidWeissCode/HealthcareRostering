@@ -29,7 +29,7 @@ int xMax = 5;
 int oMax = 4;    // Maximal amount of overtime shifts per employee per month
 
 // Decision variables
-dvar int x[Station][Employee][Day] in 0..1; // Night warden shift plan
+dvar int x[Station][Employee][Day] in 0..1; // House night warden shift plan
 dvar int f[Station][Employee][Day] in 0..1; // Morning shift plan
 dvar int s[Station][Employee][Day] in 0..1;	// Evening shift plan
 dvar int n[Station][Employee][Day] in 0..1;	// Night shift plan
@@ -37,9 +37,9 @@ dvar int o[Station][Employee][Day] in 0..1;	// Overtime shift plan
 
 // Target function
 minimize
-  120 - sum(i in Station, j in Employee, t in Day) ( // One night warden per house per day --> 4 houses * 30 days == 120
+  120 - sum(i in Station, j in Employee, t in Day) ( // One house night warden per house per day --> 4 houses * 30 days == 120
   	(x[i][j][t] - w_o * (o[i][j][t]))                // Penalize overtime of individuals
-  ) + w_f * (                                        // Penalize night warden shift unfairness between stations
+  ) + w_f * (                                        // Penalize house night warden shift unfairness between stations
     sum(i in 1..9) (								 // Fairness between stations 1-9
       abs(
         sum(j in Employee, t in Day) (
@@ -80,7 +80,7 @@ subject to {
     sum(j in Employee)
       n[i][j][t] >= 1;
     	  
-  // (4) In house H1 and H3 should be at least 1 ToBe night warden per day
+  // (4) In house H1 and H3 should be at least 1 house night warden per day
   forall(t in Day) (
   	sum(i in 1..3, j in Employee) (
 	  x[i][j][t]
@@ -90,7 +90,7 @@ subject to {
     ) >= 1
   );
   
-  // (5) In house H2 and H4 should be at least 1 ToBe night warden per day
+  // (5) In house H2 and H4 should be at least 1 house night warden per day
   forall(t in Day) (
   	sum(i in 4..6, j in Employee) (
 	  x[i][j][t]
@@ -109,7 +109,7 @@ subject to {
   	))
   );
 
-  // (7) No morning shift after night warden shift
+  // (7) No morning shift after house night warden shift
   forall(i in Station, j in Employee, t in 1..29)
     x[i][j][t] + f[i][j][t+1] <= 1;
     
@@ -117,65 +117,65 @@ subject to {
   forall(i in Station, j in Employee, t in 1..29)
     n[i][j][t] + f[i][j][t+1] <= 1;
     
-  // (7a) No evening shift after night warden shift
+  // (9) No evening shift after house night warden shift
   forall(i in Station, j in Employee, t in 1..29)
     x[i][j][t] + s[i][j][t+1] <= 1;
     
-  // (8a) No evening shift after night shift
+  // (10) No evening shift after night shift
   forall(i in Station, j in Employee, t in 1..29)
     n[i][j][t] + s[i][j][t+1] <= 1;
     
-  // (9) At most one shift per day
+  // (11) At most one shift per day
   forall(i in Station, j in Employee, t in Day)
     x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + o[i][j][t] <= 1;
   
-  // (10) Rest at least after 10 days of work
+  // (12) Rest at least after 10 days of work
   forall(i in Station, j in Employee, t in Day) (
     sum(th in t..t+10: t <= 20)
       (x[i][j][th] + f[i][j][th] + s[i][j][th] + n[i][j][th] + o[i][j][th]) <= 10
   );
     
-  // (11) Rotation of morning shifts
+  // (13) Rotation of morning shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
       f[i][j][t] <= fMax;
       
-  // (12) Rotation of evening shifts
+  // (14) Rotation of evening shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
       s[i][j][t] <= sMax;
       
-  // (13) Rotation of night shifts
+  // (15) Rotation of night shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
       n[i][j][t] <= nMax;
       
-  // (14) Rotation of house warden shifts
+  // (16) Rotation of house night warden shifts
   forall(i in Station, j in Employee)
     sum(t in Day)
       x[i][j][t] <= xMax;
       
-  // (15) Maximum night warden shifts per day in house H1
+  // (17) Maximum night warden shifts per day in house H1
   forall(t in Day)
     sum(i in 1..3, j in Employee)
       x[i][j][t] <= 1;
       
-  // (16) Maximum night warden shifts per day in house H2
+  // (18) Maximum night warden shifts per day in house H2
   forall(t in Day)
     sum(i in 4..6, j in Employee)
       x[i][j][t] <= 1;
       
-  // (17) Maximum night warden shifts per day in house H3
+  // (19) Maximum night warden shifts per day in house H3
   forall(t in Day)
     sum(i in 7..9, j in Employee)
       x[i][j][t] <= 1;
       
-  // (18) Maximum night warden shifts per day in house H4
+  // (20) Maximum night warden shifts per day in house H4
   forall(t in Day)
     sum(i in 10..11, j in Employee)
       x[i][j][t] <= 1;
       
-  // (19) Maximum overtime shifts per employee per month
+  // (21) Maximum overtime shifts per employee per month
   forall(i in Station, j in Employee)
     sum(t in Day)
       o[i][j][t] <= oMax;
