@@ -117,6 +117,14 @@ subject to{
   forall(i in Station, j in Employee, t in 1..29)
     n[i][j][t] + f[i][j][t+1] <= 1;
     
+  // (7a) No evening shift after night warden shift
+  forall(i in Station, j in Employee, t in 1..29)
+    x[i][j][t] + s[i][j][t+1] <= 1;
+    
+  // (8a) No evening shift after night shift
+  forall(i in Station, j in Employee, t in 1..29)
+    n[i][j][t] + s[i][j][t+1] <= 1;
+    
   // (9) At most one shift per day
   forall(i in Station, j in Employee, t in Day)
     x[i][j][t] + f[i][j][t] + s[i][j][t] + n[i][j][t] + o[i][j][t] <= 1;
